@@ -25,14 +25,17 @@ async function runTicTacToe() {
   };
 
   const REVERSE_MAPPINGS = Object.fromEntries(
-    Object.entries(BOARD_MAPPINGS).map(([k, v]) => [v, k])
+    Object.entries(BOARD_MAPPINGS).map(([k, v]) => [v, k]),
   );
 
   // 1D array indicates positions on the tictactoe board (see mappings above)
   let board = new Array(9).fill("");
 
-  let player = "O"; // or 'X'
+  let computer = "O";
+  let player = "X";
+  let currentTurn = computer;
   let winner = null;
+  let difficulty = "easy"; // or 'normal' or 'hard
 
   function generateChoices() {
     let choices = [];
@@ -56,7 +59,11 @@ async function runTicTacToe() {
   function isWinner() {
     for (let i = 0; i < WIN_CONDITIONS.length; i++) {
       const [a, b, c] = WIN_CONDITIONS[i];
-      if (board[a] === player && board[b] === player && board[c] === player) {
+      if (
+        board[a] === currentTurn &&
+        board[b] === currentTurn &&
+        board[c] === currentTurn
+      ) {
         return true;
       }
     }
@@ -69,7 +76,7 @@ async function runTicTacToe() {
     const row3 = `${board[6] || " "} | ${board[7] || " "} | ${board[8] || " "}`;
     const separator = "---------";
 
-    const grid = `${row1}\n${separator}\n${row2}\n${separator}\n${row3}`;
+    const grid = `${row1}\n${separator}\n${row2}\n${separator}\n${row3}\n\n`;
     console.log(grid);
   }
 
@@ -85,23 +92,52 @@ async function runTicTacToe() {
     return userSelection;
   }
 
-  async function play() {
-    displayBoard();
-
-    const userSelection = await promptUser();
-
-    updateBoard(userSelection);
-
-    if (isTie()) {
-      displayBoard();
+  function checkWinOrTie() {
+    if (isWinner()) {
+      console.log(`Player ${currentTurn} wins!`);
+      winner = currentTurn;
+      return true;
+    } else if (isTie()) {
       console.log("It's a tie!");
       winner = "tie";
-    } else if (isWinner()) {
-      displayBoard();
-      console.log(`Player ${player} wins!`);
-      winner = player;
+      return true;
     } else {
-      player = player === "O" ? "X" : "O";
+      currentTurn = currentTurn === computer ? player : computer;
+      return false;
+    }
+  }
+
+  async function playComputer() {
+    let availableSpots = [];
+    // 1. find all current available spots in board
+    for (let i = 0; i < board.length; i++) {
+      if (!board[i]) {
+        availableSpots.push(i);
+      }
+    }
+
+    // 2. choose random spot from that ^
+    const randomIndex = Math.floor(Math.random() * availableSpots.length);
+    const computerSelection = availableSpots[randomIndex];
+
+    // 3. fill that position in board
+    board[computerSelection] = computer;
+
+    displayBoard();
+
+    // 4. check tie or win
+    return checkWinOrTie();
+  }
+
+  async function play() {
+    const endGame = await playComputer();
+
+    if (!endGame) {
+      const userSelection = await promptUser();
+
+      updateBoard(userSelection);
+
+      checkWinOrTie();
     }
   }
 
