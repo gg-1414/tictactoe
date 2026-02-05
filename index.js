@@ -101,31 +101,24 @@ async function runTicTacToe() {
       console.log("It's a tie!");
       winner = "tie";
       return true;
-    } else {
-      currentTurn = currentTurn === computer ? player : computer;
-      return false;
     }
+    currentTurn = currentTurn === computer ? player : computer;
+    return false;
   }
 
   async function playComputer() {
     let availableSpots = [];
-    // 1. find all current available spots in board
     for (let i = 0; i < board.length; i++) {
       if (!board[i]) {
         availableSpots.push(i);
       }
     }
 
-    // 2. choose random spot from that ^
     const randomIndex = Math.floor(Math.random() * availableSpots.length);
     const computerSelection = availableSpots[randomIndex];
-
-    // 3. fill that position in board
     board[computerSelection] = computer;
 
     displayBoard();
-
-    // 4. check tie or win
     return checkWinOrTie();
   }
 
@@ -134,9 +127,8 @@ async function runTicTacToe() {
 
     if (!endGame) {
       const userSelection = await promptUser();
-
       updateBoard(userSelection);
-
+      displayBoard();
       checkWinOrTie();
     }
   }
